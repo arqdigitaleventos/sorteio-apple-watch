@@ -107,6 +107,11 @@
   .sucesso { text-align: center; padding: 18px 6px 10px; }
   .sucesso h2 { font-size: 26px; margin: 0 0 10px; }
   .sucesso p { color: var(--suave); line-height: 1.5; margin: 0; }
+  .sucesso .contador { display: inline-block; margin: 6px 0 14px; padding: 8px 16px; border-radius: 999px; background: #EEF3FB; color: var(--marinho); font-weight: 800; font-size: 15px; }
+  .sucesso .botao { margin-top: 20px; }
+  .lembrado { display: none; margin: 0 0 14px; padding: 10px 14px; border-radius: 12px; background: #EEF3FB; font-size: 13px; line-height: 1.4; }
+  .lembrado.ativo { display: block; }
+  .lembrado button { border: 0; background: none; padding: 0; color: var(--azul); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
 
   .rodape { max-width: 520px; margin: 0 auto 36px; text-align: center; color: rgba(255,255,255,0.85); font-size: 12px; line-height: 1.5; }
   [hidden] { display: none !important; }
@@ -148,6 +153,7 @@
     </div>
 
     <form id="form" novalidate>
+      <div id="lembrado" class="lembrado">Seus dados já estão preenchidos. Confira e envie o novo código. <button type="button" id="limpar">Não sou eu</button></div>
       <div class="grade">
         <div class="campo largo">
           <label for="nome">Nome completo</label>
@@ -216,11 +222,13 @@
 
   <div id="sucesso" class="sucesso" hidden>
     <h2>Inscrição feita!</h2>
-    <p>Boa sorte no sorteio do Apple Watch. O resultado será divulgado nos nossos canais.</p>
+    <div id="contador" class="contador" hidden></div>
+    <p>Pegou outra bebida? Cada código novo é mais uma chance de ganhar o Apple Watch. O resultado será divulgado nos nossos canais.</p>
+    <button id="outro" class="botao" type="button">Cadastrar outro código</button>
   </div>
 </main>
 
-<footer class="rodape">Arqdigital · Um código por inscrição · Cada pessoa concorre uma vez</footer>
+<footer class="rodape">Arqdigital · Cada código vale uma inscrição · Mais copos, mais chances</footer>
 
 <script>
   // Cole aqui a URL do Apps Script (Implantar > App da Web)
@@ -234,6 +242,41 @@
 
   codigoInput.addEventListener('input', () => {
     codigoInput.value = codigoInput.value.toUpperCase().replace(/[^A-Z2-9]/g, '');
+  });
+
+  // Lembra os dados neste aparelho para a próxima inscrição (o código nunca é guardado)
+  const CAMPOS = ['nome', 'email', 'telefone', 'detran', 'cargo'];
+  const CHAVE = 'sorteio-apple-watch-dados';
+  const lembrado = document.getElementById('lembrado');
+  function guardarDados(d) {
+    try { localStorage.setItem(CHAVE, JSON.stringify(CAMPOS.reduce((o, k) => (o[k] = d[k], o), {}))); } catch (e) {}
+  }
+  function carregarDados() {
+    try {
+      const d = JSON.parse(localStorage.getItem(CHAVE) || 'null');
+      if (!d || !d.email) return;
+      CAMPOS.forEach(k => { if (d[k]) document.getElementById(k).value = d[k]; });
+      document.getElementById('consentimento').checked = true;
+      lembrado.className = 'lembrado ativo';
+    } catch (e) {}
+  }
+  document.getElementById('limpar').addEventListener('click', () => {
+    try { localStorage.removeItem(CHAVE); } catch (e) {}
+    CAMPOS.forEach(k => { document.getElementById(k).value = ''; });
+    document.getElementById('consentimento').checked = false;
+    lembrado.className = 'lembrado';
+    document.getElementById('nome').focus();
+  });
+  carregarDados();
+
+  document.getElementById('outro').addEventListener('click', () => {
+    sucesso.hidden = true;
+    document.getElementById('formulario').hidden = false;
+    form.hidden = false;
+    codigoInput.value = '';
+    carregarDados();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    codigoInput.focus();
   });
 
   function mostrarAviso(texto) {
@@ -269,6 +312,10 @@
       const r = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: new URLSearchParams(dados) });
       const j = await r.json();
       if (j.status === 'ok') {
+        guardarDados(dados);
+        const cont = document.getElementById('contador');
+        const n = Number(j.inscricoes || 0);
+        if (n > 0) { cont.textContent = n === 1 ? 'Você tem 1 inscrição' : 'Você tem ' + n + ' inscrições'; cont.hidden = false; } else { cont.hidden = true; }
         form.hidden = true;
         document.getElementById('formulario').hidden = true;
         sucesso.hidden = false;
