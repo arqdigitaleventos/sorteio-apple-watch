@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sorteio Arqdigital</title>
+<style>
+  :root {
+    --azul: #224A95;
+    --azul-escuro: #1B3A7A;
+    --marinho: #172B5E;
+    --amarelo: #F7B52C;
+    --branco: #FFFFFF;
+    --texto: #172B5E;
+    --suave: #5A6A8C;
+    --borda: #D5DDEE;
+    --erro-fundo: #FDECEA;
+    --erro: #B42318;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--texto);
+    background: var(--azul);
+    min-height: 100vh;
+    padding-block: env(safe-area-inset-top, 0px) env(safe-area-inset-bottom, 0px);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+
+  /* Topo */
+  .topo { max-width: 520px; margin: 0 auto; padding-block: 40px 28px; color: var(--branco); text-align: center; }
+  .logo { display: block; height: 38px; width: auto; max-width: 100%; margin: 0 auto; }
+  .selo {
+    display: inline-block; margin-top: 26px; padding: 7px 16px; border-radius: 999px;
+    background: var(--marinho); font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  h1 { margin: 16px auto 0; max-width: 16ch; font-size: 36px; line-height: 1.08; font-weight: 800; text-wrap: balance; }
+  h1 span { color: var(--amarelo); }
+  .premio {
+    display: inline-block; margin-top: 18px; padding: 10px 20px; border-radius: 999px;
+    background: var(--amarelo); color: var(--marinho); font-weight: 800; font-size: 17px;
+  }
+
+  /* Cartão do formulário */
+  .cartao {
+    max-width: 520px; margin: 0 auto 28px; background: var(--branco);
+    border-radius: 22px; padding: 26px 20px 24px; box-shadow: 0 18px 40px rgba(10, 25, 60, 0.35);
+  }
+  .passo { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; }
+  .passo + .campo, .passo + .codigo-caixa { margin-top: 0; }
+  .numero {
+    flex: none; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--azul); color: var(--branco); display: grid; place-items: center; font-weight: 800; font-size: 14px;
+  }
+  .passo h2 { margin: 0; font-size: 18px; }
+  .passo p { margin: 2px 0 0; font-size: 13px; color: var(--suave); line-height: 1.4; }
+
+  /* Campo do código */
+  .codigo-caixa {
+    background: #EEF3FB; border: 2px dashed var(--azul); border-radius: 16px; padding: 18px 14px 14px; text-align: center;
+  }
+  .codigo-caixa label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .codigo {
+    width: 100%; max-width: 280px; margin: 0 auto; display: block;
+    font: inherit; font-size: 28px; font-weight: 800; letter-spacing: 8px; text-align: center; text-transform: uppercase;
+    padding: 12px 10px; border: 2px solid var(--azul); border-radius: 14px; color: var(--marinho); background: var(--branco);
+  }
+  .dica { font-size: 12px; color: var(--suave); margin-top: 8px; }
+
+  /* Seção de dados */
+  .separador { height: 1px; background: var(--borda); margin: 26px 0 20px; }
+  .grade { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  @media (min-width: 480px) {
+    .grade { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .grade .largo { grid-column: 1 / -1; }
+  }
+  .campo { min-width: 0; }
+  .campo label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .campo input, .campo select {
+    display: block; width: 100%; min-width: 0; max-width: 100%; font: inherit; font-size: 16px; padding: 13px 14px; min-height: 48px;
+    border: 1.5px solid var(--borda); border-radius: 12px; background: var(--branco); color: var(--texto);
+  }
+  .campo select {
+    appearance: none; -webkit-appearance: none; padding-right: 40px; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23224A95' stroke-width='2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center;
+  }
+  .campo input:focus, .campo select:focus { outline: 3px solid var(--amarelo); outline-offset: 1px; border-color: var(--azul); }
+
+  /* Aceite */
+  .aceite { display: flex; gap: 12px; align-items: flex-start; margin-top: 20px; font-size: 13px; line-height: 1.45; }
+  .aceite input { margin-top: 2px; width: 20px; height: 20px; flex: none; accent-color: var(--azul); }
+
+  /* Botão e avisos */
+  .botao {
+    width: 100%; margin-top: 22px; padding: 17px; border: 0; border-radius: 14px;
+    background: var(--azul); color: var(--branco); font: inherit; font-size: 17px; font-weight: 800; cursor: pointer;
+  }
+  .botao:hover { background: var(--azul-escuro); }
+  .botao:disabled { opacity: 0.6; cursor: wait; }
+  .aviso { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 12px; font-size: 14px; line-height: 1.4; }
+  .aviso.erro { display: block; background: var(--erro-fundo); color: var(--erro); }
+
+  /* Tela de sucesso */
+  .sucesso { text-align: center; padding: 18px 6px 10px; }
+  .sucesso h2 { font-size: 26px; margin: 0 0 10px; }
+  .sucesso p { color: var(--suave); line-height: 1.5; margin: 0; }
+
+  .rodape { max-width: 520px; margin: 0 auto 36px; text-align: center; color: rgba(255,255,255,0.85); font-size: 12px; line-height: 1.5; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <img class="logo" src="logo_arqdigital_branco.png" alt="Arqdigital">
+  <div class="selo">Sorteio Arqdigital</div>
+  <h1>Digite o código do copo e <span>concorra</span></h1>
+  <div class="premio">Apple Watch</div>
+</header>
+
+<main class="cartao">
+  <div id="formulario">
+
+    <div class="passo">
+      <div class="numero">1</div>
+      <div>
+        <h2>Código do copo</h2>
+        <p>Está impresso no adesivo, com 5 letras e números.</p>
+      </div>
+    </div>
+    <div class="codigo-caixa">
+      <label for="codigo">Código da bebida</label>
+      <input id="codigo" class="codigo" name="codigo" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXXX" aria-describedby="dica-codigo">
+      <div id="dica-codigo" class="dica">Digite exatamente os 5 caracteres.</div>
+    </div>
+
+    <div class="separador"></div>
+
+    <div class="passo">
+      <div class="numero">2</div>
+      <div>
+        <h2>Seus dados</h2>
+        <p>Usamos para entrar em contato se você ganhar.</p>
+      </div>
+    </div>
+
+    <form id="form" novalidate>
+      <div class="grade">
+        <div class="campo largo">
+          <label for="nome">Nome completo</label>
+          <input id="nome" name="nome" type="text" autocomplete="name" required>
+        </div>
+
+        <div class="campo largo">
+          <label for="email">E-mail</label>
+          <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required>
+        </div>
+
+        <div class="campo">
+          <label for="telefone">Telefone (WhatsApp)</label>
+          <input id="telefone" name="telefone" type="tel" autocomplete="tel" inputmode="tel">
+        </div>
+
+        <div class="campo">
+          <label for="detran">DETRAN do seu estado</label>
+          <select id="detran" name="detran" required>
+            <option value="" selected disabled>Escolha o estado</option>
+            <option value="DETRAN-AC">DETRAN-AC · Acre</option>
+            <option value="DETRAN-AL">DETRAN-AL · Alagoas</option>
+            <option value="DETRAN-AP">DETRAN-AP · Amapá</option>
+            <option value="DETRAN-AM">DETRAN-AM · Amazonas</option>
+            <option value="DETRAN-BA">DETRAN-BA · Bahia</option>
+            <option value="DETRAN-CE">DETRAN-CE · Ceará</option>
+            <option value="DETRAN-DF">DETRAN-DF · Distrito Federal</option>
+            <option value="DETRAN-ES">DETRAN-ES · Espírito Santo</option>
+            <option value="DETRAN-GO">DETRAN-GO · Goiás</option>
+            <option value="DETRAN-MA">DETRAN-MA · Maranhão</option>
+            <option value="DETRAN-MT">DETRAN-MT · Mato Grosso</option>
+            <option value="DETRAN-MS">DETRAN-MS · Mato Grosso do Sul</option>
+            <option value="DETRAN-MG">DETRAN-MG · Minas Gerais</option>
+            <option value="DETRAN-PA">DETRAN-PA · Pará</option>
+            <option value="DETRAN-PB">DETRAN-PB · Paraíba</option>
+            <option value="DETRAN-PR">DETRAN-PR · Paraná</option>
+            <option value="DETRAN-PE">DETRAN-PE · Pernambuco</option>
+            <option value="DETRAN-PI">DETRAN-PI · Piauí</option>
+            <option value="DETRAN-RJ">DETRAN-RJ · Rio de Janeiro</option>
+            <option value="DETRAN-RN">DETRAN-RN · Rio Grande do Norte</option>
+            <option value="DETRAN-RS">DETRAN-RS · Rio Grande do Sul</option>
+            <option value="DETRAN-RO">DETRAN-RO · Rondônia</option>
+            <option value="DETRAN-RR">DETRAN-RR · Roraima</option>
+            <option value="DETRAN-SC">DETRAN-SC · Santa Catarina</option>
+            <option value="DETRAN-SP">DETRAN-SP · São Paulo</option>
+            <option value="DETRAN-SE">DETRAN-SE · Sergipe</option>
+            <option value="DETRAN-TO">DETRAN-TO · Tocantins</option>
+          </select>
+        </div>
+
+        <div class="campo largo">
+          <label for="cargo">Cargo</label>
+          <input id="cargo" name="cargo" type="text" autocomplete="organization-title" required>
+        </div>
+      </div>
+
+      <label class="aceite">
+        <input id="consentimento" type="checkbox" required>
+        <span>Concordo em participar do sorteio e que meus dados sejam usados para este fim, conforme a LGPD.</span>
+      </label>
+
+      <div id="aviso" class="aviso" role="alert"></div>
+      <button id="enviar" class="botao" type="submit">Enviar inscrição</button>
+    </form>
+  </div>
+
+  <div id="sucesso" class="sucesso" hidden>
+    <h2>Inscrição feita!</h2>
+    <p>Boa sorte no sorteio do Apple Watch. O resultado será divulgado nos nossos canais.</p>
+  </div>
+</main>
+
+<footer class="rodape">Arqdigital · Um código por inscrição · Cada pessoa concorre uma vez</footer>
+
+<script>
+  // Cole aqui a URL do Apps Script (Implantar > App da Web)
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbygI-4e85v-7aPkwmW8MerE096Py9rr1GvA0OiLIgy7QMI1X8j14Z7ZZbfZXqRssJTR/exec';
+
+  const form = document.getElementById('form');
+  const aviso = document.getElementById('aviso');
+  const botao = document.getElementById('enviar');
+  const codigoInput = document.getElementById('codigo');
+  const sucesso = document.getElementById('sucesso');
+
+  codigoInput.addEventListener('input', () => {
+    codigoInput.value = codigoInput.value.toUpperCase().replace(/[^A-Z2-9]/g, '');
+  });
+
+  function mostrarAviso(texto) {
+    aviso.textContent = texto;
+    aviso.className = 'aviso erro';
+  }
+
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    aviso.className = 'aviso';
+
+    const dados = {
+      codigo: codigoInput.value.trim(),
+      nome: document.getElementById('nome').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      telefone: document.getElementById('telefone').value.trim(),
+      detran: document.getElementById('detran').value,
+      cargo: document.getElementById('cargo').value.trim(),
+    };
+
+    if (!/^[A-Z2-9]{5}$/.test(dados.codigo)) return mostrarAviso('Digite os 5 caracteres do código do copo.');
+    if (!dados.nome) return mostrarAviso('Preencha seu nome completo.');
+    if (!/^\S+@\S+\.\S+$/.test(dados.email)) return mostrarAviso('Digite um e-mail válido.');
+    if (!dados.detran) return mostrarAviso('Escolha o DETRAN do seu estado.');
+    if (!dados.cargo) return mostrarAviso('Preencha o seu cargo.');
+    if (!document.getElementById('consentimento').checked) return mostrarAviso('Marque o aceite para participar.');
+    if (APPS_SCRIPT_URL.startsWith('COLE_AQUI')) return mostrarAviso('Página sem endereço de gravação. Avise a equipe.');
+
+    botao.disabled = true;
+    botao.textContent = 'Enviando...';
+
+    try {
+      const r = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: new URLSearchParams(dados) });
+      const j = await r.json();
+      if (j.status === 'ok') {
+        form.hidden = true;
+        document.getElementById('formulario').hidden = true;
+        sucesso.hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        mostrarAviso(j.msg || 'Não foi possível concluir.');
+      }
+    } catch (e) {
+      mostrarAviso('Sem conexão com o servidor. Verifique a internet e tente de novo.');
+    } finally {
+      botao.disabled = false;
+      botao.textContent = 'Enviar inscrição';
+    }
+  });
+</script>
+</body>
+</html>
